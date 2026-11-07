@@ -18,7 +18,7 @@ enum Role {
 model User {
   id        Int      @id @default(autoincrement())
   email     String   @unique
-  name      String
+  password  String
   role      Role     @default(PATRON)
   createdAt DateTime @default(now())
   reviews   Review[]
@@ -36,10 +36,13 @@ model Book {
   title           String
   author          String
   isbn            String   @unique
+  description     String
+  coverImage      String?
   totalCopies     Int      @default(1)
   availableCopies Int      @default(1)
   genreId         Int
   genre           Genre    @relation(fields: [genreId], references: [id])
+  createdAt       DateTime @default(now())
   reviews         Review[]
 
   @@index([genreId])

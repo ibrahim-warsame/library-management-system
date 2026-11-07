@@ -9,7 +9,7 @@ Where each required file lives and what it contains. The migration has been appl
 | File | Requirement | What it contains |
 |---|---|---|
 | [`api/prisma/schema.prisma`](api/prisma/schema.prisma) | `Role` enum, `User`, `Genre`, `Book` with `genreId` FK | `enum Role { PATRON LIBRARIAN }`, `User.role Role`, `Genre`, and `Book` with `genreId Int` and `genre Genre @relation(fields: [genreId], references: [id])` (plus the stretch `Review` model) |
-| [`api/prisma/seed.ts`](api/prisma/seed.ts) | 4+ genres, 15+ books | **5 genres** and **16 books** (Science Fiction 3, Fantasy 3, Mystery 3, Non-Fiction 3, Classic Literature 4), plus 2 users |
+| [`api/prisma/seed.ts`](api/prisma/seed.ts) | 4+ genres, 15+ books | **5 genres** and **16 books** (Science Fiction 3, Fantasy 3, Mystery 3, Biography 3, Classic Literature 4) |
 | [`api/src/prisma/prisma.service.ts`](api/src/prisma/prisma.service.ts) | Extends `PrismaClient`, implements `OnModuleInit`, calls `$connect()` | `class PrismaService extends PrismaClient implements OnModuleInit { async onModuleInit() { await this.$connect(); } }` |
 | [`api/.env.example`](api/.env.example) | `DATABASE_URL` placeholder, no real credentials | `DATABASE_URL="postgresql://USER:PASSWORD@HOST:5432/DATABASE?sslmode=require"` |
 | `README.md` | "Schema Decisions" section | See [Schema Decisions](#schema-decisions) below |
@@ -48,7 +48,7 @@ cd api
 npm install
 cp .env.example .env          # then put your hosted Postgres URL (Neon/Supabase) in DATABASE_URL
 npx prisma migrate dev        # creates the tables and generates the typed client
-npx prisma db seed            # inserts 5 genres, 16 books, 2 users
+npx prisma db seed            # inserts 5 genres and 16 books
 npm run start:dev             # runs the API with auto-reload
 ```
 
@@ -67,7 +67,7 @@ Each `Book` stores only a `genreId` foreign key pointing at a row in the `Genre`
 
 Other decisions:
 
-- **`Role` enum (`PATRON`, `LIBRARIAN`)** on `User` restricts the role to two valid values at the database level; it defaults to `PATRON`.
+- **`Role` enum (`PATRON`, `LIBRARIAN`)** on `User` means Postgres and TypeScript both reject any value other than PATRON or LIBRARIAN; it defaults to `PATRON`. `User` also stores a `password` (hashed, once auth is added).
 - **`isbn` is `@unique`** so the same book cannot be catalogued twice; `Genre.name` and `Genre.slug` are unique for the same reason.
 - **`totalCopies` and `availableCopies`** are separate so borrowing can later decrement availability without losing the size of the collection.
 - **`Review` (stretch)** links a `User` to a `Book` with a `rating` and optional `comment`. `@@unique([bookId, userId])` allows one review per user per book, and deleting a book or user cascades to their reviews.
@@ -82,7 +82,7 @@ The biggest difference from modeling in a document database (like MongoDB) was t
 api/
 ├── prisma/
 │   ├── schema.prisma     # Role enum, User, Genre, Book, Review
-│   └── seed.ts           # 5 genres, 16 books, 2 users
+│   └── seed.ts           # 5 genres, 16 books
 └── src/
     ├── app.module.ts
     ├── main.ts
