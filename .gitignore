@@ -5,3 +5,4 @@ dist/
 coverage/
 *.tsbuildinfo
 .mcp.json
+package-lock.json

@@ -2,6 +2,45 @@
 
 A NestJS + Prisma + PostgreSQL API for a library's book catalog.
 
+## Assignment Deliverables
+
+Where each required file lives and what it contains. The migration has been applied to a hosted Supabase PostgreSQL database and the seed has been run against it.
+
+| File | Requirement | What it contains |
+|---|---|---|
+| [`api/prisma/schema.prisma`](api/prisma/schema.prisma) | `Role` enum, `User`, `Genre`, `Book` with `genreId` FK | `enum Role { PATRON LIBRARIAN }`, `User.role Role`, `Genre`, and `Book` with `genreId Int` and `genre Genre @relation(fields: [genreId], references: [id])` (plus the stretch `Review` model) |
+| [`api/prisma/seed.ts`](api/prisma/seed.ts) | 4+ genres, 15+ books | **5 genres** and **16 books** (Science Fiction 3, Fantasy 3, Mystery 3, Non-Fiction 3, Classic Literature 4), plus 2 users |
+| [`api/src/prisma/prisma.service.ts`](api/src/prisma/prisma.service.ts) | Extends `PrismaClient`, implements `OnModuleInit`, calls `$connect()` | `class PrismaService extends PrismaClient implements OnModuleInit { async onModuleInit() { await this.$connect(); } }` |
+| [`api/.env.example`](api/.env.example) | `DATABASE_URL` placeholder, no real credentials | `DATABASE_URL="postgresql://USER:PASSWORD@HOST:5432/DATABASE?sslmode=require"` |
+| `README.md` | "Schema Decisions" section | See [Schema Decisions](#schema-decisions) below |
+
+Core schema excerpt (`api/prisma/schema.prisma`):
+
+```prisma
+enum Role {
+  PATRON
+  LIBRARIAN
+}
+
+model Genre {
+  id    Int    @id @default(autoincrement())
+  name  String @unique
+  slug  String @unique
+  books Book[]
+}
+
+model Book {
+  id              Int    @id @default(autoincrement())
+  title           String
+  author          String
+  isbn            String @unique
+  totalCopies     Int    @default(1)
+  availableCopies Int    @default(1)
+  genreId         Int
+  genre           Genre  @relation(fields: [genreId], references: [id])
+}
+```
+
 ## Setup
 
 ```bash
