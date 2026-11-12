@@ -1,6 +1,7 @@
 // api/prisma/seed.ts
 // Inserts 5 genres and 16 books. Run with: npx prisma db seed
 import { PrismaClient } from '@prisma/client';
+import * as bcrypt from 'bcrypt';
 
 const prisma = new PrismaClient();
 
@@ -63,8 +64,22 @@ async function main() {
     });
   }
 
+  // One librarian account so book/genre management routes can be used.
+  const librarianEmail = process.env.LIBRARIAN_EMAIL ?? 'librarian@library.test';
+  const librarianPassword = process.env.LIBRARIAN_PASSWORD ?? 'Librarian123!';
+  await prisma.user.upsert({
+    where: { email: librarianEmail },
+    update: {},
+    create: {
+      email: librarianEmail,
+      password: await bcrypt.hash(librarianPassword, 10),
+      role: 'LIBRARIAN',
+    },
+  });
+
   const [genreCount, bookCount] = await Promise.all([prisma.genre.count(), prisma.book.count()]);
   console.log(`Seeded ${genreCount} genres and ${bookCount} books`);
+  console.log(`Librarian account: ${librarianEmail}`);
 }
 
 main()

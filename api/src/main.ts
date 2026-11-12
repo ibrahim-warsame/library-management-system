@@ -1,3 +1,4 @@
+import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module.js';
 
@@ -11,6 +12,9 @@ try {
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+  // Validate every request body against its DTO; strip fields the DTO doesn't declare.
+  app.useGlobalPipes(new ValidationPipe({ whitelist: true }));
+  app.enableCors();
   await app.listen(process.env.PORT ?? 3000);
 }
 await bootstrap();
