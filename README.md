@@ -2,7 +2,38 @@
 
 A NestJS + Prisma + PostgreSQL API for a library's book catalog.
 
-## Assignment Deliverables
+## Week 2 Deliverables: Book API, Auth & Authorization
+
+All Week 2 code is in `api/src/` and `docs/`:
+
+| File | What it contains |
+|---|---|
+| [`api/src/genres/genres.controller.ts`](api/src/genres/genres.controller.ts), [`genres.service.ts`](api/src/genres/genres.service.ts), [`genres.module.ts`](api/src/genres/genres.module.ts) | Full Genre CRUD: create, findAll, findOne, update, remove (write routes restricted to LIBRARIAN) |
+| [`api/src/books/dto/create-book.dto.ts`](api/src/books/dto/create-book.dto.ts), [`update-book.dto.ts`](api/src/books/dto/update-book.dto.ts) | class-validator decorators on title, author, isbn, totalCopies, genreId |
+| [`api/src/books/books.controller.ts`](api/src/books/books.controller.ts) | `GET /books` reads `genreId`, `search`, `page`, `limit` via `@Query()`; POST/PATCH/DELETE use `@UseGuards(JwtAuthGuard, RolesGuard)` + `@Roles('LIBRARIAN')` |
+| [`api/src/books/books.service.ts`](api/src/books/books.service.ts) | `findAll()` builds a Prisma `where` from genreId/search and applies `skip`/`take` pagination |
+| [`api/src/auth/auth.controller.ts`](api/src/auth/auth.controller.ts), [`auth.service.ts`](api/src/auth/auth.service.ts), [`auth.module.ts`](api/src/auth/auth.module.ts) | `POST /auth/register` and `POST /auth/login`; passwords hashed with bcrypt before saving; login returns a JWT |
+| [`api/src/auth/jwt.strategy.ts`](api/src/auth/jwt.strategy.ts), [`jwt-auth.guard.ts`](api/src/auth/jwt-auth.guard.ts) | JwtStrategy verifies tokens with `JWT_SECRET`; `JwtAuthGuard extends AuthGuard('jwt')` |
+| [`api/src/auth/roles.decorator.ts`](api/src/auth/roles.decorator.ts), [`roles.guard.ts`](api/src/auth/roles.guard.ts) | `@Roles()` decorator plus a RolesGuard that checks `req.user.role` against the required roles |
+| [`api/src/main.ts`](api/src/main.ts) | `app.useGlobalPipes(new ValidationPipe({ whitelist: true }))` and `app.enableCors()` |
+| [`docs/postman_collection.json`](docs/postman_collection.json) | A request for every endpoint built this week (auth, users, genres, books) |
+| [`api/src/users/users.controller.ts`](api/src/users/users.controller.ts) | Stretch: `GET /users/profile` reads the authenticated user with `@Req()`; login is rate-limited with `@nestjs/throttler` |
+
+### Endpoints
+
+| Method | Route | Access |
+|---|---|---|
+| POST | `/auth/register` | Public (always creates a PATRON) |
+| POST | `/auth/login` | Public, max 5 attempts/min |
+| GET | `/users/profile` | Any logged-in user |
+| GET | `/genres`, `/genres/:id` | Public |
+| POST / PATCH / DELETE | `/genres`, `/genres/:id` | LIBRARIAN |
+| GET | `/books?genreId=&search=&page=&limit=`, `/books/:id` | Public |
+| POST / PATCH / DELETE | `/books`, `/books/:id` | LIBRARIAN |
+
+Setup for Week 2: add `JWT_SECRET` to `api/.env` (see `.env.example`), then `npx prisma db seed` creates a librarian account (`librarian@library.test`, password `Librarian123!`). Import `docs/postman_collection.json` into Postman and run "Login (librarian)" first; it saves the token for the protected requests.
+
+## Week 1 Deliverables
 
 Where each required file lives and what it contains. The migration has been applied to a hosted Supabase PostgreSQL database and the seed has been run against it.
 
